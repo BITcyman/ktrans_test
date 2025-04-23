@@ -37,19 +37,19 @@ cd human_eval
 python ../../../humaneval.py \
     --port 36666 \
     --model_name DeepSeek-V3-GGML-FP8-Hybrid \
-    --out_path eval.jsonl
+    --out_path ./eval.jsonl
 
 # 多并发测试
-python ../../../humaneval.py \
+python ../../../humaneval_concu.py \
     --port 36666 \
     --model_name DeepSeek-V3-GGML-FP8-Hybrid \
-    --out_path eval_concu.jsonl
+    --out_path ./eval_concu.jsonl
 
 echo "human_eval 测试结束，开始 aime 测试"
 
 # 获取最终的分数
-evaluate_functional_correctness results/api/eval.jsonl > eval.log
-evaluate_functional_correctness results/api/eval_concu.jsonl > eval_concu.log
+evaluate_functional_correctness ./eval.jsonl > ./eval.log
+evaluate_functional_correctness ./eval_concu.jsonl > ./eval_concu.log
 
 cd ..
 

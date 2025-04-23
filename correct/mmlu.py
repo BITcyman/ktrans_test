@@ -222,4 +222,4 @@ if __name__ == "__main__":
     data_evaluator.load_data(args.file)
 
     # Run the main function with the specified number of concurrent evaluations
-    main(args.concurrent, data_evaluator, args.result, args.log, args.api_url, args.model)
+    main(args.concurrent, data_evaluator, args.result, args.log, SERVER_URL, args.model)

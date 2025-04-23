@@ -163,5 +163,7 @@ if __name__ == "__main__":
 
     port = args.port
     SERVER_URL = f"http://localhost:{port}/v1/chat/completions"
+    
+    wait_for_port("127.0.0.1", port, 10, 30*60)
 
     asyncio.run(main(args.question_id, args.model, args.stream, args.max_tokens, args.temperature, args.top_p))

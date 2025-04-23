@@ -235,4 +235,4 @@ if __name__ == "__main__":
     data_evaluator = DataEvaluator()
     data_evaluator.load_data(args.file)
     
-    main(args.concurrent, data_evaluator, args.result, args.log, args.api_url, args.model)
+    main(args.concurrent, data_evaluator, args.result, args.log, SERVER_URL, args.model)

@@ -5,10 +5,27 @@ import requests
 from human_eval.data import write_jsonl, read_problems
 import tqdm
 
-from evaluation import filter_code, fix_indents
-from prompts import instruct_prompt
 import socket
 import time
+
+
+def instruct_prompt(prompt: str) -> str:
+    return f"""Below is an instruction that describes a task. Write a response that appropriately completes the request.\n\n### Instruction:\nComplete the following Python code without any tests or explanation\n{prompt}\n\n### Response:"""
+
+def filter_code(completion: str) -> str:
+    # The program tends to overwrite, we only take the first function
+    completion = completion.lstrip("\n")
+    # we also remove ```python\n and ```
+    completion = completion.replace("```python\n", "").replace("```", "")
+    if 'if __name__ == "__main__":' in completion:
+        completion = completion.split('if __name__ == "__main__":')[0]
+    if "# Example usage" in completion:
+        completion = completion.split("# Example usage")[0]
+    return completion
+
+
+def fix_indents(text: str) -> str:
+    return text.replace("\t", "    ")
 
 def is_port_open(host: str, port: int, timeout: float = 1.0) -> bool:
     """检查端口是否开放"""
@@ -126,4 +143,4 @@ if __name__ == "__main__":
     SERVER_URL = f"http://localhost:{port}/v1/chat/completions"
     wait_for_port("127.0.0.1", port, 10, 30*60)
 
-    main(args.out_path, args.api_url, args.model_name, args.auth_token, args.format_tabs, args.problem_file, args.no_append,args.skip)
+    main(args.out_path, SERVER_URL, args.model_name, args.auth_token, args.format_tabs, args.problem_file, args.no_append,args.skip)

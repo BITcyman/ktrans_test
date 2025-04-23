@@ -5,8 +5,6 @@ import tqdm
 import concurrent.futures
 from human_eval.data import write_jsonl, read_problems
 
-from evaluation import filter_code, fix_indents
-from prompts import instruct_prompt
 import socket
 import time
 
@@ -137,4 +135,4 @@ if __name__ == "__main__":
 
     wait_for_port("127.0.0.1", port, 10, 30*60)
 
-    main(args.out_path, args.api_url, args.model_name, args.auth_token, args.format_tabs, args.problem_file, args.no_append, args.skip, args.max_workers)
+    main(args.out_path, SERVER_URL, args.model_name, args.auth_token, args.format_tabs, args.problem_file, args.no_append, args.skip, args.max_workers)

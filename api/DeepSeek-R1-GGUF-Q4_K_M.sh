@@ -27,6 +27,7 @@ cleanup() {
     wait $pid1  # 等待第一个脚本真正退出
 }
 
+echo "ktrans api test" > api.log
 
 # 测试 stream 是否有效
 echo "=====================" >> api.log
@@ -173,7 +174,7 @@ python ../test_api.py \
 
 
 # 测试多并发 
-echo "=====================" >> api.log
+echo "=====================" >> api_concu.log
 echo "concurrent=4, prompt_lens=1024, max_tokens=128 " >> api_concu.log
 python ../test_concurrent.py \
     --concurrent 4 \
@@ -184,7 +185,7 @@ python ../test_concurrent.py \
 
 
 # 测试多并发 
-echo "=====================" >> api.log
+echo "=====================" >> api_concu.log
 echo "concurrent=4, prompt_lens=8192, max_tokens=128 " >> api_concu.log
 python ../test_concurrent.py \
     --concurrent 4 \
@@ -195,7 +196,7 @@ python ../test_concurrent.py \
 
 
 # 测试多并发 
-echo "=====================" >> api.log
+echo "=====================" >> api_concu.log
 echo "concurrent=128, prompt_lens=1024, max_tokens=128 " >> api_concu.log
 python ../test_concurrent.py \
     --concurrent 128 \
