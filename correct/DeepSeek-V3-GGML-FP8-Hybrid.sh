@@ -7,7 +7,7 @@ cd output
 mkdir -p DeepSeek-V3-GGML-FP8-Hybrid
 cd DeepSeek-V3-GGML-FP8-Hybrid
 
-mamba activate ktransformers 
+conda activate ktransformers 
 python -m ktransformers.server.main \
     --host 0.0.0.0 --port 36666 \
     --backend_type balance_serve \

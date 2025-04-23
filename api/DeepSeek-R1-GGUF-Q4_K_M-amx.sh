@@ -4,7 +4,7 @@ eval "$(conda shell.bash hook)"
 mkdir -p  output
 cd output
 
-mamba activate ktransformers 
+conda activate ktransformers 
 python -m ktransformers.server.main \
     --host 0.0.0.0 --port 36666 \
     --backend_type balance_serve \

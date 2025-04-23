@@ -7,7 +7,7 @@ cd output
 mkdir -p DeepSeek-V3-Q4_K_M
 cd DeepSeek-V3-Q4_K_M
 
-mamba activate ktransformers 
+conda activate ktransformers 
 python -m ktransformers.server.main \
     --host 0.0.0.0 --port 36666 \
     --backend_type balance_serve \
