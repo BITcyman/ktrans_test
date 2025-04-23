@@ -28,8 +28,6 @@ cleanup() {
     wait $pid1  # 等待第一个脚本真正退出
 }
 
-sleep 1800
-
 export HF_ENDPOINT=https://hf-mirror.com
 
 # human_eval 测试
@@ -38,13 +36,13 @@ cd human_eval
 
 # 单并发测试
 python ../../../humaneval.py \
-    --api_url http://localhost:36666/v1/chat/completions \
+    --port 36666 \
     --model_name DeepSeek-R1-GGML-FP8-Hybrid \
     --out_path eval.jsonl
 
 # 多并发测试
 python ../../../humaneval.py \
-    --api_url http://localhost:36666/v1/chat/completions \
+    --port 36666 \
     --model_name DeepSeek-R1-GGML-FP8-Hybrid \
     --out_path eval_concu.jsonl
 
@@ -62,14 +60,14 @@ cd mmlu
 
 # 单并发测试
 python ../../../mmlu.py \
-    --api_url http://localhost:36666/v1/chat/completions \
+    --port 36666 \
     --result ./mmlu.jsonl \
     --log ./mmlu.log \
     --model DeepSeek-R1-GGML-FP8-Hybrid 
 
 # 多并发测试
 python ../../../mmlu_concu.py \
-    --api_url http://localhost:36666/v1/chat/completions \
+    --port 36666 \
     --result ./mmlu_concu.jsonl \
     --log ./mmlu_concu.log \
     --model DeepSeek-R1-GGML-FP8-Hybrid 

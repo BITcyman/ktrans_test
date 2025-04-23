@@ -1,10 +1,36 @@
 import argparse
 import random
-import time
 import json
 import requests
 import pandas as pd
 from datasets import load_dataset
+import socket
+import time
+
+def is_port_open(host: str, port: int, timeout: float = 1.0) -> bool:
+    """检查端口是否开放"""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.settimeout(timeout)
+        try:
+            s.connect((host, port))
+            return True
+        except (ConnectionRefusedError, socket.timeout):
+            return False
+
+def wait_for_port(host: str, port: int, check_interval: float = 1.0, max_wait: float = 30.0):
+    """忙等直到端口开放，超时抛出 TimeoutError"""
+    print(f"Waiting for {host}:{port} to open (timeout={max_wait}s)...")
+    start_time = time.time()
+
+    while True:
+        if is_port_open(host, port):
+            print(f"{host}:{port} is now open!")
+            return
+        if time.time() - start_time > max_wait:
+            raise TimeoutError(f"Timeout: {host}:{port} did not open within {max_wait} seconds")
+        time.sleep(check_interval)
+
+
 
 import os
 os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
@@ -176,10 +202,14 @@ if __name__ == "__main__":
     parser.add_argument("--result", type=str, default="./mmlu_result_silicon.json", help="Path to save the result JSON file")
     parser.add_argument("--log", type=str, default="./mmlu_result_silicon.log", help="Path to save the log file")
     parser.add_argument("--model", type=str, default="Pro/deepseek-ai/DeepSeek-V3", help="Model name or path")
-    parser.add_argument("--api_url", type=str, default="http://localhost:10003/v1/chat/completions", help="API URL")
+    parser.add_argument("--port", type=int, default=36666, help="API port")
     # parser.add_argument("--api_url", type=str, default="https://api.siliconflow.cn/v1/chat/completions", help="API URL")
 
     args = parser.parse_args()
+    port = args.port
+    SERVER_URL = f"http://localhost:{port}/v1/chat/completions"
+
+    wait_for_port("127.0.0.1", port, 10, 30*60)
 
     # Load the data from the provided file
     # template_prompt = hint + "\nQuestion: {question}\nA. {options}\nB. {option_b}\nC. {option_c}\nD. {option_d}\nAnswer: '"

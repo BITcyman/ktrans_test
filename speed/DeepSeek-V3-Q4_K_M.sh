@@ -27,15 +27,13 @@ cleanup() {
     wait $pid1  # 等待第一个脚本真正退出
 }
 
-sleep 1800
-
 for concurrent in 1 2 4 8; do
     for prompt_lens in 1024 2048; do
         for max_tokens in 128 512; do \
             python ../../test_speed.py \
                 --concurrent $concurrent \
                 --prompt_lens $prompt_lens \
-                --api_url http://localhost:36666/v1/chat/completions \
+                --port 36666 \
                 --max_tokens $max_tokens \
                 >> "testpy.log" 2>&1
             

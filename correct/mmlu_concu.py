@@ -9,6 +9,33 @@ import os
 import concurrent.futures
 import threading
 import re
+import socket
+import time
+
+def is_port_open(host: str, port: int, timeout: float = 1.0) -> bool:
+    """检查端口是否开放"""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.settimeout(timeout)
+        try:
+            s.connect((host, port))
+            return True
+        except (ConnectionRefusedError, socket.timeout):
+            return False
+
+def wait_for_port(host: str, port: int, check_interval: float = 1.0, max_wait: float = 30.0):
+    """忙等直到端口开放，超时抛出 TimeoutError"""
+    print(f"Waiting for {host}:{port} to open (timeout={max_wait}s)...")
+    start_time = time.time()
+
+    while True:
+        if is_port_open(host, port):
+            print(f"{host}:{port} is now open!")
+            return
+        if time.time() - start_time > max_wait:
+            raise TimeoutError(f"Timeout: {host}:{port} did not open within {max_wait} seconds")
+        time.sleep(check_interval)
+
+
 
 os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
 os.environ['https_proxy'] = ''
@@ -197,10 +224,14 @@ if __name__ == "__main__":
     parser.add_argument("--result", type=str, default="./mmlu_result_silicon.json", help="结果文件保存路径")
     parser.add_argument("--log", type=str, default="./mmlu_result_silicon.log", help="日志文件保存路径")
     parser.add_argument("--model", type=str, default="Pro/deepseek-ai/DeepSeek-V3", help="模型名称或路径")
-    parser.add_argument("--api_url", type=str, default="http://localhost:10006/v1/chat/completions", help="API URL")
+    parser.add_argument("--port", type=int, default=36666, help="API port")
 
     args = parser.parse_args()
+    port = args.port
+    SERVER_URL = f"http://localhost:{port}/v1/chat/completions"
     
+    wait_for_port("127.0.0.1", port, 10, 30*60)
+
     data_evaluator = DataEvaluator()
     data_evaluator.load_data(args.file)
     

@@ -1,13 +1,35 @@
 import asyncio
 import json
-import sys
 import aiohttp
-import random
 import argparse
-import yaml
-import os
 import time
-from time import sleep
+import socket
+
+def is_port_open(host: str, port: int, timeout: float = 1.0) -> bool:
+    """检查端口是否开放"""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.settimeout(timeout)
+        try:
+            s.connect((host, port))
+            return True
+        except (ConnectionRefusedError, socket.timeout):
+            return False
+
+def wait_for_port(host: str, port: int, check_interval: float = 1.0, max_wait: float = 30.0):
+    """忙等直到端口开放，超时抛出 TimeoutError"""
+    print(f"Waiting for {host}:{port} to open (timeout={max_wait}s)...")
+    start_time = time.time()
+
+    while True:
+        if is_port_open(host, port):
+            print(f"{host}:{port} is now open!")
+            return
+        if time.time() - start_time > max_wait:
+            raise TimeoutError(f"Timeout: {host}:{port} did not open within {max_wait} seconds")
+        time.sleep(check_interval)
+
+
+
 
 decodesz = 128
 # Server URL (replace with your server URL)
@@ -146,11 +168,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Event Stream Request Tester")
     parser.add_argument("--concurrent", type=int, default=1, help="Number of concurrent requests")
     parser.add_argument("--prompt_lens", type=int, default=1024, help="prefill prompt lens, 1024 or 2048")
-    parser.add_argument("--api_url", type=str, default="http://localhost:10002/v1/chat/completions", help="API URL")
+    parser.add_argument("--port", type=int, default=36666, help="API port")
     parser.add_argument("--max_tokens", type=int, default=50, help="max decode tokens")
     
     args = parser.parse_args()
-    SERVER_URL = args.api_url
+    port = args.port
+    SERVER_URL = f"http://localhost:{port}/v1/chat/completions"
+
     max_tokens = args.max_tokens
     if args.prompt_lens == 1024:
         prompt = ktansformer_prompt1024
@@ -160,4 +184,6 @@ if __name__ == "__main__":
         prompt = ktansformer_prompt1024 * 4
     elif args.prompt_lens == 8192:
         prompt = ktansformer_prompt1024 * 8
+    
+    wait_for_port("127.0.0.1", port, 10, 30*60)
     asyncio.run(main(args.concurrent, prompt, max_tokens))

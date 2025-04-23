@@ -7,6 +7,33 @@ from human_eval.data import write_jsonl, read_problems
 
 from evaluation import filter_code, fix_indents
 from prompts import instruct_prompt
+import socket
+import time
+
+def is_port_open(host: str, port: int, timeout: float = 1.0) -> bool:
+    """检查端口是否开放"""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.settimeout(timeout)
+        try:
+            s.connect((host, port))
+            return True
+        except (ConnectionRefusedError, socket.timeout):
+            return False
+
+def wait_for_port(host: str, port: int, check_interval: float = 1.0, max_wait: float = 30.0):
+    """忙等直到端口开放，超时抛出 TimeoutError"""
+    print(f"Waiting for {host}:{port} to open (timeout={max_wait}s)...")
+    start_time = time.time()
+
+    while True:
+        if is_port_open(host, port):
+            print(f"{host}:{port} is now open!")
+            return
+        if time.time() - start_time > max_wait:
+            raise TimeoutError(f"Timeout: {host}:{port} did not open within {max_wait} seconds")
+        time.sleep(check_interval)
+
+
 
 def generate_text(api_url, question, model_name, stream=False, auth_token=None):
     headers = {
@@ -94,7 +121,7 @@ def main(output_path, api_url, model_name, auth_token, format_tabs, problem_file
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="API Generate Tester")
-    parser.add_argument("--api_url", type=str, default="http://localhost:10002/v1/chat/completions", help="API URL")
+    parser.add_argument("--port", type=int, default=36666, help="API port")
     parser.add_argument("--model_name", type=str, default="Pro/deepseek-ai/DeepSeek-V3", help="Model Name")
     parser.add_argument("--out_path", type=str, default="results/api/eval_con.jsonl", help="Output Path")
     parser.add_argument("--auth_token", type=str, default=None, help="Auth Token")
@@ -103,5 +130,11 @@ if __name__ == "__main__":
     parser.add_argument("--no_append", action="store_false", help="Append to existing file")
     parser.add_argument("--skip", type=int, default=0, help="Skip first n problems")
     parser.add_argument("--max_workers", type=int, default=8, help="Maximum number of concurrent workers")
+
     args = parser.parse_args()
+    port = args.port
+    SERVER_URL = f"http://localhost:{port}/v1/chat/completions"
+
+    wait_for_port("127.0.0.1", port, 10, 30*60)
+
     main(args.out_path, args.api_url, args.model_name, args.auth_token, args.format_tabs, args.problem_file, args.no_append, args.skip, args.max_workers)

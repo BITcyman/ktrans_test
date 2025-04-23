@@ -3,6 +3,33 @@ import json
 import sys
 import aiohttp
 import argparse
+import socket
+import time
+
+def is_port_open(host: str, port: int, timeout: float = 1.0) -> bool:
+    """检查端口是否开放"""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.settimeout(timeout)
+        try:
+            s.connect((host, port))
+            return True
+        except (ConnectionRefusedError, socket.timeout):
+            return False
+
+def wait_for_port(host: str, port: int, check_interval: float = 1.0, max_wait: float = 30.0):
+    """忙等直到端口开放，超时抛出 TimeoutError"""
+    print(f"Waiting for {host}:{port} to open (timeout={max_wait}s)...")
+    start_time = time.time()
+
+    while True:
+        if is_port_open(host, port):
+            print(f"{host}:{port} is now open!")
+            return
+        if time.time() - start_time > max_wait:
+            raise TimeoutError(f"Timeout: {host}:{port} did not open within {max_wait} seconds")
+        time.sleep(check_interval)
+
+
 
 prompt_list = [
     'Please elaborate on modern world history.',
@@ -130,8 +157,11 @@ if __name__ == "__main__":
     parser.add_argument("--max_tokens", type=int, default=None)
     parser.add_argument("--temperature", type=float, default=None)
     parser.add_argument("--top_p", type=float, default=None)
-    parser.add_argument("--api_url", type=str, default="http://localhost:10006/v1/chat/completions", help="API URL")
+    parser.add_argument("--port", type=int, default=36666, help="API port")
 
     args = parser.parse_args()
-    SERVER_URL = args.api_url
+
+    port = args.port
+    SERVER_URL = f"http://localhost:{port}/v1/chat/completions"
+
     asyncio.run(main(args.question_id, args.model, args.stream, args.max_tokens, args.temperature, args.top_p))
